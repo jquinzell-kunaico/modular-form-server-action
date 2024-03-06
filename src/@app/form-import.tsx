@@ -1,14 +1,10 @@
-import { $, component$, useSignal, type QRL } from '@builder.io/qwik'
-import { routeLoader$, server$ } from '@builder.io/qwik-city'
-import type { InitialValues, SubmitHandler } from '@modular-forms/qwik'
-import { formAction$, useForm, valiForm$ } from '@modular-forms/qwik'
-import { type Input, minLength, object, string } from 'valibot'
-// import {serverThing$ } from './server'
-
-const serverThing$ = server$((email: string) => {
-  console.log('on server', email)
-  return email.toUpperCase()
-})
+import type { QRL } from '@builder.io/qwik'
+import { component$, useSignal, $ } from '@builder.io/qwik'
+import type { SubmitHandler } from '@modular-forms/qwik'
+import { useForm, valiForm$ } from '@modular-forms/qwik'
+import type { Input } from 'valibot'
+import { object, string, minLength } from 'valibot'
+import { serverThing$ } from './server'
 
 const LoginSchema = object({
   email: string([minLength(1, 'Please enter your email.')]),
@@ -17,18 +13,9 @@ const LoginSchema = object({
 
 type LoginForm = Input<typeof LoginSchema>
 
-export const useFormLoader = routeLoader$<InitialValues<LoginForm>>(() => ({
-  email: '',
-  password: '',
-}))
-
-export const useFormAction = formAction$<LoginForm>((values) => {
-  // Runs on server
-}, valiForm$(LoginSchema))
-
 export default component$(() => {
   const result = useSignal('')
-  const [loginForm, { Form, Field }] = useForm<LoginForm>({
+  const [, { Form, Field }] = useForm<LoginForm>({
     loader: {
       value: {
         email: '',
