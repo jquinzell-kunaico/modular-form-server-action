@@ -1,21 +1,67 @@
 # Reproducing Errors
 
-Having issues using server$
+When using `server$` from qwik there are some caveats to look out for.
 
-## Importing a server$
+The different variations I found are defined in `src/@app`. Each route just imports a different variation to demonstrate the behavior that happens.
 
-If I try to define a `server$` function and export it, I get an error saying `Qrl($) scope is not a function, but it's capturing local identifiers: values`
+Routes:
+
+- /exported
+- /imported
+- /inline
+
+## Importing a server$ from another file
+
+If I try to define a `server$` function in a stand alone file then import it, I get an error saying `Qrl($) scope is not a function, but it's capturing local identifiers: values`
+
+```ts
+// server.ts
+export const serverThing$ = server$((email: string) => {
+  console.log('on server', email)
+  return email.toUpperCase()
+})
+
+// component.tsx
+import { serverThing } from './server.ts'
+
+export default component$(...)
+```
 
 See this in the `/imported` route.
 
 ## Inline server$
 
-If I just put my `server$` in the same file as my component, everything works in this repo. But in another repo I am getting this error
+If I just put my `server$` in the same file as my component, everything works in this repo.
+
+```ts
+// component.tsx
+const serverThing$ = server$((email: string) => {
+  console.log('on server', email)
+  return email.toUpperCase()
+})
+
+// use serverThing$ in component
+export default component$(...)
+```
 
 See in `/inline` route
 
-```
-Found 'submitData$' but did not find the corresponding 'submitDataQrl' exported in the same file. Please check that it is exported and spelled correctly
-```
+## Exporting From Component
 
-Will continue trying to reproduce this here.
+Do not accidentally export your `server$` function or you will get an error
+
+```ts
+// component.tsx
+
+// this export breaks the build with error:
+// Found 'serverThing$' but did not find the corresponding 'serverThingQrl' exported in the same file.
+// Please check that it is exported and spelled correctly
+
+export const serverThing$ = server$((email: string) => {
+  console.log('on server', email)
+  return email.toUpperCase()
+})
+
+// use serverThing$ in component
+export default component$(...)
+```
